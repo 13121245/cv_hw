@@ -5,10 +5,15 @@ import cPickle
 import os
 import numpy as np
 
-dir_path = os.path.abspath('data')
+dir_path = os.path.abspath('../hw1/data')
 color_test_file = 'test_batch'
 gray_test_file = 'gray_test_data'
 gray_train_file = 'gray_train_data'
+sift_train_file = 'sift_train'
+sift_test_file = 'sift_test'
+dictionary_file = 'dictionary'
+sparse_train_file = 'sparse_train'
+sparse_test_file = 'sparse_test'
 im_size = 32
 im_chanel = 3
 
@@ -82,6 +87,55 @@ def save_gray_test_data():
     color_data = get_color_test_data()
     gray_data = color_to_gray(color_data)
     __save_data(gray_data, gray_test_file)
+
+
+def get_sift_train_data():
+    file_path = os.path.join(dir_path, sift_train_file)
+    with open(file_path, 'rb') as sift_train:
+        data_dict = cPickle.load(sift_train)
+    return data_dict
+
+
+def get_sift_test_data():
+    file_path = os.path.join(dir_path, sift_test_file)
+    with open(file_path, 'rb') as sift_test:
+        data_dict = cPickle.load(sift_test)
+    return data_dict
+
+
+def save_sift_data(sift_data, file_name):
+    print 'start to save sift data with filel_name ', file_name
+    __save_data(sift_data, file_name)
+
+
+def save_dictionary_data(d_data):
+    print 'start to save dictionary data with filel_name ', dictionary_file
+    __save_data(d_data, dictionary_file)
+
+
+def get_dictionary_data():
+    file_path = os.path.join(dir_path, dictionary_file)
+    with open(file_path, 'rb') as cook_book:
+        data_dict = cPickle.load(cook_book)
+    return data_dict
+
+
+def get_sparse_train_data():
+    file_path = os.path.join(dir_path, sparse_train_file)
+    with open(file_path, 'rb') as sc_train:
+        data_dict = cPickle.load(sc_train)
+    return data_dict
+
+
+def get_sparse_test_data():
+    file_path = os.path.join(dir_path, sparse_test_file)
+    with open(file_path, 'rb') as sc_test:
+        data_dict = cPickle.load(sc_test)
+    return data_dict
+
+def save_sparse_data(sparse_data, file_name):
+    print 'start to save sparse_data data with file_name ', file_name
+    __save_data(sparse_data, file_name)
 
 
 def __save_data(gray_data, file_name):
