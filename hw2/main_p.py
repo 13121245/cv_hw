@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 
 import cv2
+import logging
+import traceback
+import datetime
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans
 from sklearn.decomposition import sparse_encode
@@ -10,8 +13,9 @@ import numpy as np
 from hw1 import data_operation
 
 IM_SIZE = 32
-CLUSTER_K = 50
+CLUSTER_K = 100
 K_LIST = [1, 5, 9]
+
 
 def get_sift_feature(img):
     """得到指定图像的dense sift特征
@@ -29,6 +33,7 @@ def get_sift_feature(img):
     # print des.shape, des.dtype
     # print des
     return des
+
 
 def get_img_matrix(im_array):
     """
@@ -55,13 +60,13 @@ def save_sift_data(origin_data, data_file_path):
     Y = origin_data['labels']  # 1-by-num_of_sample matrix
     num_x = X.shape[0]
     sift_data = list()
-    for i in range(0, min(num_x, 10000)):
+    for i in range(0, min(num_x, num_x)):
         img = get_img_matrix(X[i])
         sf = get_sift_feature(img)
         sift_data.append(sf)
     result_dict = dict()
     result_dict['data'] = np.array(sift_data, dtype=np.uint8)
-    result_dict['lables'] = Y
+    result_dict['labels'] = Y
     print result_dict['data'].shape
     data_operation.save_sift_data(result_dict, data_file_path)
 
@@ -76,37 +81,39 @@ def knn(sc_train, sc_test):
     y_train = sc_train['labels']  # 训练数据标签
     x_test = sc_test['data']      # 稀疏编码， 测试数据个数-by-字典中的个数
     y_test = sc_test['labels']    # 测试数据标签
-    n_test = x_test.shape[0]
+    print type(x_test)
+    n_test = len(x_test)
     for k in K_LIST:
         clf = KNeighborsClassifier(algorithm='kd_tree', n_neighbors=k)
         clf.fit(x_train, y_train)
         labels = clf.predict(x_test)
         accuracy = float(np.sum(labels == y_test)) / n_test
-        print 'k is', k, ', Accuracy is ', accuracy
+        logging.info('k is' + str(k) + ', Accuracy is ' + str(accuracy))
 
 
-def svm(sc_train, sc_test):
+def svm_c(sc_train, sc_test):
     """
         :param sc_train: 训练数据的稀疏编码和标签
         :param sc_test:  测试数据的稀疏编码和标签
         :return:
     """
-    x_train = sc_train['data']  # 稀疏编码， 训练数据个数-by-字典中的个数
+    x_train = sc_train['data']    # 稀疏编码， 训练数据个数-by-字典中的个数
     y_train = sc_train['labels']  # 训练数据标签
-    x_test = sc_test['data']  # 稀疏编码， 测试数据个数-by-字典中的个数
-    y_test = sc_test['labels']  # 测试数据标签
-    n_test = x_test.shape[0]
+    x_test = sc_test['data']      # 稀疏编码， 测试数据个数-by-字典中的个数
+    y_test = sc_test['labels']    # 测试数据标签
+    n_test = len(x_test)
     clf = svm.LinearSVC()
     clf.fit(x_train, y_train)
     labels = clf.predict(x_test)
     accuracy = float(np.sum(labels == y_test)) / n_test
-    print 'svm ', 'Accuracy is ', accuracy
+    logging.info('svm Accuracy is ' + str(accuracy) )
 
 
 def init():
     """ step 1 初始化sift特征
     :return:
     """
+    print 'step 1'
     # 得到训练数据和测试数据的sift特征，将其保存到本地
     train_data = data_operation.get_color_train_data()
     save_sift_data(train_data, data_operation.sift_train_file)
@@ -118,14 +125,16 @@ def get_dictionary():
     """step 2 cluster these features into bases(centroids) using k-means
     :return:
     """
+    print 'step 2'
     sift_train = data_operation.get_sift_train_data()
     sift_data = sift_train['data']
     sift_features_all = np.array([], dtype=np.uint8)
     sift_features_all.shape = (0, sift_data.shape[2])
     for img_sift in sift_data:
         sift_features_all = np.concatenate((sift_features_all, img_sift))
+    print sift_features_all.shape
     kmeans = KMeans(n_clusters=CLUSTER_K, random_state=0).fit(sift_features_all)
-    data_operation.save_dictionary(kmeans.cluster_centers_)
+    data_operation.save_dictionary_data(kmeans.cluster_centers_)
 
 
 def get_sparse_codes():
@@ -134,6 +143,7 @@ def get_sparse_codes():
     learn sparse codes with these bases, and perform average pooling on sparse codes per image
     :return:
     """
+    print 'step 3'
     dictionary = data_operation.get_dictionary_data()
     # train
     sift_train = data_operation.get_sift_train_data()
@@ -146,7 +156,7 @@ def get_sparse_codes():
     result_dict = dict()
     result_dict['data'] = sparse_train
     result_dict['labels'] = train_label
-    data_operation.save_sparse_data(sparse_train, data_operation.sparse_train_file)
+    data_operation.save_sparse_data(result_dict, data_operation.sparse_train_file)
     # test
     sift_test = data_operation.get_sift_test_data()
     test_data = sift_test['data']
@@ -158,7 +168,7 @@ def get_sparse_codes():
     result_dict = dict()
     result_dict['data'] = sparse_test
     result_dict['labels'] = test_label
-    data_operation.save_sparse_data(sparse_test, data_operation.sparse_test_file)
+    data_operation.save_sparse_data(result_dict, data_operation.sparse_test_file)
 
 
 def classify():
@@ -166,18 +176,23 @@ def classify():
     step 4 进行分类预测
     use k-NN (k = 1, 5, 9) and multi-class linear classifier (least squares) to classify testing data
     """
+    print 'step 4'
     sc_train = data_operation.get_sparse_train_data()
     sc_test = data_operation.get_sparse_test_data()
     knn(sc_train, sc_test)
-    svm(sc_train, sc_test)
+    svm_c(sc_train, sc_test)
 
 
 def run():
-    # init()
-    get_dictionary()
-
-
-
+    try:
+        init()
+        get_dictionary()
+        get_sparse_codes()
+        classify()
+    except Exception as e:
+        logging.exception(e)
 
 if __name__ == "__main__":
+    logging.basicConfig(filename='hw2.log', filemode="w", level=logging.DEBUG)
+    logging.info(datetime.datetime.utcnow())
     run()
