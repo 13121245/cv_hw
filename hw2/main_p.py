@@ -113,7 +113,7 @@ def init():
     """ step 1 初始化sift特征
     :return:
     """
-    print 'step 1'
+    logging.info('step 1')
     # 得到训练数据和测试数据的sift特征，将其保存到本地
     train_data = data_operation.get_color_train_data()
     save_sift_data(train_data, data_operation.sift_train_file)
@@ -125,7 +125,7 @@ def get_dictionary():
     """step 2 cluster these features into bases(centroids) using k-means
     :return:
     """
-    print 'step 2'
+    logging.info('step 2')
     sift_train = data_operation.get_sift_train_data()
     sift_data = sift_train['data']
     sift_features_all = np.array([], dtype=np.uint8)
@@ -143,7 +143,7 @@ def get_sparse_codes():
     learn sparse codes with these bases, and perform average pooling on sparse codes per image
     :return:
     """
-    print 'step 3'
+    logging.info('step 3')
     dictionary = data_operation.get_dictionary_data()
     # train
     sift_train = data_operation.get_sift_train_data()
@@ -176,7 +176,7 @@ def classify():
     step 4 进行分类预测
     use k-NN (k = 1, 5, 9) and multi-class linear classifier (least squares) to classify testing data
     """
-    print 'step 4'
+    logging.info('step 4')
     sc_train = data_operation.get_sparse_train_data()
     sc_test = data_operation.get_sparse_test_data()
     knn(sc_train, sc_test)
@@ -184,6 +184,8 @@ def classify():
 
 
 def run():
+    logging.basicConfig(filename='hw2.log', filemode="w", level=logging.DEBUG)
+    logging.info(datetime.datetime.utcnow())
     try:
         init()
         get_dictionary()
@@ -193,6 +195,4 @@ def run():
         logging.exception(e)
 
 if __name__ == "__main__":
-    logging.basicConfig(filename='hw2.log', filemode="w", level=logging.DEBUG)
-    logging.info(datetime.datetime.utcnow())
     run()

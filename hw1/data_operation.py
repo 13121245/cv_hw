@@ -5,7 +5,7 @@ import cPickle
 import os
 import numpy as np
 
-dir_path = os.path.abspath('../../data')
+dir_path = os.path.abspath('../../cifar')
 color_test_file = 'test_batch'
 gray_test_file = 'gray_test_data'
 gray_train_file = 'gray_train_data'

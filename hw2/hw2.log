@@ -1,10 +1,1 @@
-INFO:root:2017-02-13 15:10:30.110000
-ERROR:root:list indices must be integers, not str
-Traceback (most recent call last):
-  File "D:/PycharmProjects/cv_hw/hw2/main_p.py", line 189, in run
-    classify()
-  File "D:/PycharmProjects/cv_hw/hw2/main_p.py", line 180, in classify
-    knn(sc_train, sc_test)
-  File "D:/PycharmProjects/cv_hw/hw2/main_p.py", line 80, in knn
-    x_test = sc_test['data']      # 稀疏编码， 测试数据个数-by-字典中的个数
-TypeError: list indices must be integers, not str
+INFO:root:2017-02-13 15:17:21.363000
