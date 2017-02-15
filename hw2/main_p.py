@@ -1,4 +1,5 @@
 # -*- coding:utf-8 -*-
+# author: zjw
 
 import cv2
 import logging
@@ -6,14 +7,16 @@ import traceback
 import datetime
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans
+from sklearn.cluster import MiniBatchKMeans
 from sklearn.decomposition import sparse_encode
+from sklearn.decomposition import SparseCoder
 from sklearn import svm
 import numpy as np
 
 from hw1 import data_operation
 
 IM_SIZE = 32
-CLUSTER_K = 100
+CLUSTER_K = 50
 K_LIST = [1, 5, 9]
 
 
@@ -128,12 +131,17 @@ def get_dictionary():
     logging.info('step 2')
     sift_train = data_operation.get_sift_train_data()
     sift_data = sift_train['data']
-    sift_features_all = np.array([], dtype=np.uint8)
-    sift_features_all.shape = (0, sift_data.shape[2])
-    for img_sift in sift_data:
-        sift_features_all = np.concatenate((sift_features_all, img_sift))
+    sift_data_shape = sift_data.shape
+    print sift_data_shape
+    # sift_features_all = np.array([], dtype=np.uint8)
+    # sift_features_all.shape = (0, sift_data.shape[2])
+    # for img_sift in sift_data:
+    #     sift_features_all = np.concatenate((sift_features_all, img_sift))
+    sift_features_all = np.reshape(sift_data, (sift_data_shape[0]*sift_data_shape[1], 128))
+    # print sift_features_all[1]
     print sift_features_all.shape
-    kmeans = KMeans(n_clusters=CLUSTER_K, random_state=0).fit(sift_features_all)
+    # kmeans = KMeans(n_clusters=CLUSTER_K, random_state=0).fit(sift_features_all)
+    kmeans = MiniBatchKMeans(n_clusters=CLUSTER_K, batch_size=100).fit(sift_features_all)
     data_operation.save_dictionary_data(kmeans.cluster_centers_)
 
 
@@ -145,14 +153,20 @@ def get_sparse_codes():
     """
     logging.info('step 3')
     dictionary = data_operation.get_dictionary_data()
+    print dictionary.shape
     # train
     sift_train = data_operation.get_sift_train_data()
     train_data = sift_train['data']
     train_label = sift_train['labels']
     sparse_train = list()
-    for x in train_data:
-        codes = sparse_encode(x, dictionary)
+    print train_data.shape
+    for i, x in enumerate(train_data):
+        print i
+        # codes = sparse_encode(x, dictionary)
+        se = SparseCoder(dictionary=dictionary)
+        codes = se.transform(x)
         sparse_train.append(np.average(codes, axis=0))
+        # print np.average(codes, axis=0)
     result_dict = dict()
     result_dict['data'] = sparse_train
     result_dict['labels'] = train_label
@@ -162,8 +176,11 @@ def get_sparse_codes():
     test_data = sift_test['data']
     test_label = sift_test['labels']
     sparse_test = list()
-    for x in test_data:
-        codes = sparse_encode(x, dictionary)
+    for i, x in enumerate(test_data):
+        # codes = sparse_encode(x, dictionary)
+        print i
+        se = SparseCoder(dictionary=dictionary)
+        codes = se.transform(x)
         sparse_test.append(np.average(codes, axis=0))
     result_dict = dict()
     result_dict['data'] = sparse_test
@@ -187,8 +204,8 @@ def run():
     logging.basicConfig(filename='hw2.log', filemode="w", level=logging.DEBUG)
     logging.info(datetime.datetime.utcnow())
     try:
-        init()
-        get_dictionary()
+        # init()
+        # get_dictionary()
         get_sparse_codes()
         classify()
     except Exception as e:

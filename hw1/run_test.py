@@ -110,17 +110,17 @@ def color_data_run():
     train_data = data_operation.get_color_train_data()
     test_data = data_operation.get_color_test_data()
     random_project_knn(train_data, test_data)
-    # svd_knn(train_data, test_data)
-    # random_project_svm(train_data, test_data)
-    # svd_svm(train_data, test_data)
+    svd_knn(train_data, test_data)
+    random_project_svm(train_data, test_data)
+    svd_svm(train_data, test_data)
 
 
 def gray_data_run():
     train_data = data_operation.get_gray_train_data()
     test_data = data_operation.get_gray_test_data()
-    # random_project_knn(train_data, test_data)
-    # svd_knn(train_data, test_data)
-    # random_project_svm(train_data, test_data)
+    random_project_knn(train_data, test_data)
+    svd_knn(train_data, test_data)
+    random_project_svm(train_data, test_data)
     svd_svm(train_data, test_data)
 
 
