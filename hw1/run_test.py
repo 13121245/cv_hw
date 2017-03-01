@@ -5,6 +5,8 @@ import knn
 import time
 import numpy as np
 from sklearn import svm
+from sklearn.linear_model import LogisticRegression
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.neighbors import KNeighborsClassifier
 
 k_list = [1, 5, 9]
@@ -32,15 +34,16 @@ def random_project_knn(train_data, test_data):
             print 'random project_knn: D is ', fea_k, ', k is', k, ', Accuracy is ', accuracy
 
 
-def random_project_svm(train_data, test_data):
+def random_project_linear(train_data, test_data):
     x_train = train_data['data']
     y_train = train_data['labels']
     x_test = test_data['data']
     y_test = test_data['labels']
     (n_train, fea_n) = x_train.shape
     n_test = x_test.shape[0]
-    # clf = svm.SVC(decision_function_shape='ovo')
-    clf = svm.LinearSVC()
+    # clf = OneVsRestClassifier(svm.SVC(kernel='linear'))
+    # clf = svm.LinearSVC()
+    clf = LogisticRegression()
     for fea_k in fea_k_list:
         tf_matrix = get_rp_matrix(fea_n, fea_k)
         x_train_n = np.dot(x_train, tf_matrix)
@@ -51,7 +54,7 @@ def random_project_svm(train_data, test_data):
         print 'random project_svm: D is ', fea_k, ', Accuracy is ', accuracy
 
 
-def svd_svm(train_data, test_data):
+def svd_linear(train_data, test_data):
     x_train = train_data['data']
     y_train = train_data['labels']
     x_test = test_data['data']
@@ -61,7 +64,7 @@ def svd_svm(train_data, test_data):
         x_train_n = get_svd_matrix(x_train.T, fea_k)  # fea_k-by-num_of_x_train
         x_test_n = get_svd_matrix(x_test.T, fea_k)
         # clf = svm.SVC(decision_function_shape='ovo')
-        clf = svm.LinearSVC()
+        clf = LogisticRegression()
         clf.fit(x_train_n.T, y_train)
         labels = clf.predict(x_test_n.T)
         accuracy = float(np.sum(labels == y_test)) / n_test
@@ -111,8 +114,8 @@ def color_data_run():
     test_data = data_operation.get_color_test_data()
     random_project_knn(train_data, test_data)
     svd_knn(train_data, test_data)
-    random_project_svm(train_data, test_data)
-    svd_svm(train_data, test_data)
+    random_project_linear(train_data, test_data)
+    svd_linear(train_data, test_data)
 
 
 def gray_data_run():
@@ -120,8 +123,8 @@ def gray_data_run():
     test_data = data_operation.get_gray_test_data()
     random_project_knn(train_data, test_data)
     svd_knn(train_data, test_data)
-    random_project_svm(train_data, test_data)
-    svd_svm(train_data, test_data)
+    random_project_linear(train_data, test_data)
+    svd_linear(train_data, test_data)
 
 
 def get_svd_matrix(data_old, fea_k):
@@ -148,7 +151,7 @@ def get_rp_matrix(fea_n, fea_k):
 
 
 if __name__ == '__main__':
-    # gray_data_run()
+    gray_data_run()
     color_data_run()
     # a = np.random.randn(9, 6)
     # b = get_svd_matrix(a, 3)

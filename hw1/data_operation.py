@@ -134,6 +134,7 @@ def get_sparse_test_data():
         data_dict = cPickle.load(sc_test)
     return data_dict
 
+
 def save_sparse_data(sparse_data, file_name):
     print 'start to save sparse_data data with file_name ', file_name
     __save_data(sparse_data, file_name)
